@@ -34,7 +34,7 @@
 #define EVT_PH_EARTH 14
 #define EVT_THETA 1
 #define EVT_PHASE 15
-#define EVT_EVSTATUS 14
+#define EVT_EVSTATUS 13
 
 //columsn of LOG file
 #define LOG_TIME 0
@@ -93,10 +93,23 @@ int main(int argc, char** argv) {
 			std::vector<float> ph_earth = inputFF->read32f(EVT_PH_EARTH, nrows_start, nrows_end-1);
 			std::vector<float> theta = inputFF->read32f(EVT_THETA, nrows_start, nrows_end-1);
 			std::vector<int16_t> phase = inputFF->read16i(EVT_PHASE, nrows_start, nrows_end-1);
+			std::vector< std::vector<char> > status = inputFF->readString(EVT_EVSTATUS, nrows_start, nrows_end-1, 1);
+			std::vector<int16_t> status2(nrows_end-nrows_start+1);
 
+			for(uint32_t i  = 0; i<nrows_end; i++) {
+				std::string evt;
+				evt = &(status[i])[0];
+				cout << evt << endl;
+				if(evt.compare("G") == 0) status2[i] = 0;
+				if(evt.compare("L") == 0) status2[i] = 1;
+				if(evt.compare("S") == 0) status2[i] = 2;
+
+			}
 			//write data into BDB
 			for(uint32_t i  = 0; i<nrows_end; i++) {
-				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << endl;
+				//&(status[i])[0]
+				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " " << status2[i] << endl;
+				//INSERT HERE THE BDB CODE
 
 			}
 		}
@@ -122,6 +135,8 @@ int main(int argc, char** argv) {
 				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " ";
 				cout << attitude_ra_y[i] << endl;
 				if(attitude_ra_y[i] != 0) count++;
+				//INSERT HERE THE BDB CODE
+
 			}
 			cout << count << endl;
 		}
