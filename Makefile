@@ -184,7 +184,7 @@ lib: staticlib
 	
 exe: makeobjdir $(OBJECTS)
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) $(LIBS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS)  -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
 	
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
