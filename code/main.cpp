@@ -24,6 +24,10 @@
 #include <string>
 #include "InputFileFITS.h"
 
+#include "AstroMap.h"
+#include "Astro.h"
+#include <Freeze/Freeze.h>
+
 //file types
 #define EVT 1
 #define LOG 2
@@ -85,6 +89,16 @@ int main(int argc, char** argv) {
 		if(ncols == 19) type = EVT;
 		if(ncols == 41) type = LOG;
 
+		Ice::InitializationData initData;
+		initData.properties = Ice::createProperties();
+		initData.properties->load("config");
+
+		// Initialize the Communicator.
+		Ice::CommunicatorPtr communicator = Ice::initialize(argc, argv, initData);
+
+		// Create a Freeze database connection.
+		Freeze::ConnectionPtr connection = Freeze::createConnection(communicator, "db");
+
 		if(type == EVT) {
 			//read all columns
 			cout << "Read EVT file " << endl;
@@ -106,12 +120,62 @@ int main(int argc, char** argv) {
 
 			}
 			//write data into BDB
+
+			//Create the vector to store into BDB
+			Astro::agileEvt evt;
+
+			//Create the key
+			Astro::agileKey key;
+
+			//Create the map
+			AgileEvtMap evtMap(connection, "AgileEvtMap");
+
 			for(uint32_t i  = 0; i<nrows_end; i++) {
 				//&(status[i])[0]
 				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " " << status2[i] << endl;
-				//INSERT HERE THE BDB CODE
+
+				//Populate the vector
+				evt.clear();
+				evt.push_back((Ice::Double) status2[i]);
+				evt.push_back((Ice::Double) phase[i]);
+				evt.push_back((Ice::Double) theta[i]);
+				evt.push_back((Ice::Double) ph_earth[i]);
+				evt.push_back((Ice::Double) energy[i]);
+				evt.push_back((Ice::Double) time[i]);
+
+				//Populate the key
+				key.time = time[i];
+				key.energy = energy[i];
+				key.theta = theta[i];
+				key.evstatus = status2[i];
+
+				//Execute write
+				evtMap.insert(make_pair(key,evt));
 
 			}
+
+			/*
+			 * TEST READ KEY COMPOSITE
+			 */
+
+			//The iterator
+			AgileEvtMap::iterator it;
+
+			//Read the data
+			for (it = evtMap.begin(); it != evtMap.end(); ++it) {
+				if(it->first.evstatus == 0 && it->first.energy>80 && it->first.energy<100 && it->first.theta>50){
+					evt = it->second;
+						for (int var = 0; var < Astro::agileEvtSize; ++var) {
+						if(var == 0)
+							cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) evt.back() << "\t";
+						else
+							cout << evt.back() << "\t";
+							evt.pop_back();
+						}
+					cout << endl;
+				}
+			}
+
 		}
 		if(type == LOG) {
 			//read all columns
@@ -131,11 +195,37 @@ int main(int argc, char** argv) {
 			std::vector<float> q4 = inputFF->read32f(LOG_Q4, nrows_start, nrows_end-1);
 			//write data into BDB
 			uint32_t count = 0;
+
+			//Create the vector to store into BDB
+			Astro::agileLog agileLog;
+
+			//Create the map
+			AgileLogMap logMap(connection, "AgileLogMap");
+
 			for(uint32_t i = 0; i<nrows_end; i++) {
 				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " ";
 				cout << attitude_ra_y[i] << endl;
 				if(attitude_ra_y[i] != 0) count++;
-				//INSERT HERE THE BDB CODE
+
+				//Populate the vector
+				agileLog.clear();
+				agileLog.push_back((Ice::Double) q4[i]);
+				agileLog.push_back((Ice::Double) q3[i]);
+				agileLog.push_back((Ice::Double) q2[i]);
+				agileLog.push_back((Ice::Double) q1[i]);
+				agileLog.push_back((Ice::Double) log_earth_dec[i]);
+				agileLog.push_back((Ice::Double) log_earth_ra[i]);
+				agileLog.push_back((Ice::Double) attitude_dec_y[i]);
+				agileLog.push_back((Ice::Double) attitude_ra_y[i]);
+				agileLog.push_back((Ice::Double) mode[i]);
+				agileLog.push_back((Ice::Double) log_status[i]);
+				agileLog.push_back((Ice::Double) livetime[i]);
+				agileLog.push_back((Ice::Double) phase[i]);
+				agileLog.push_back((Ice::Double) time[i]);
+
+				//Execute write
+				logMap.insert(make_pair(time[i], agileLog));
+
 
 			}
 			cout << count << endl;

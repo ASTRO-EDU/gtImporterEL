@@ -26,7 +26,7 @@ SYSTEM= $(shell gcc -dumpmachine)
 LINKERENV= ice, cfitsio
 PROJECT= gtImporterEL
 EXE_NAME = gtImporterEL
-LIB_NAME = <lib_name>
+LIB_NAME = gtImporterEL
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
 CONF_DEST_DIR =
@@ -182,11 +182,11 @@ all: exe
 
 lib: staticlib 
 	
-exe: makeobjdir $(OBJECTS)
+exe: makeslice makeobjdir $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 		$(CC) $(CPPFLAGS) $(ALL_CFLAGS)  -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
 	
-staticlib: makelibdir makeobjdir $(OBJECTS)	
+staticlib: makelibdir makeobjdir $(OBJECTS)
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
 		$(DEL_FILE) $(LIB_DESTDIR)/$(TARGETA) 	
 		$(AR) $(LIB_DESTDIR)/$(TARGETA) $(OBJECTS_DIR)/*.o
@@ -208,6 +208,10 @@ makeobjdir:
 	
 makelibdir:
 	test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)
+	
+makeslice:
+	slice2cpp --output-dir code code/Astro.ice
+	slice2freeze --dict AgileEvtMap,Astro::agileKey,Astro::agileEvt --dict AgileLogMap,double,Astro::agileLog --output-dir code AstroMap code/Astro.ice
 
 #clean: delete all files from the current directory that are normally created by building the program. 
 clean:
