@@ -124,11 +124,10 @@ int main(int argc, char** argv) {
 			//Create the vector to store into BDB
 			Astro::agileEvt evt;
 
-			//Create the key
-			Astro::agileKey key;
-
 			//Create the map
 			AgileEvtMap evtMap(connection, "AgileEvtMap");
+
+			cout << "Start write into BDB" << endl;
 
 			for(uint32_t i  = 0; i<nrows_end; i++) {
 				//&(status[i])[0]
@@ -143,37 +142,9 @@ int main(int argc, char** argv) {
 				evt.push_back((Ice::Double) energy[i]);
 				evt.push_back((Ice::Double) time[i]);
 
-				//Populate the key
-				key.time = time[i];
-				key.energy = energy[i];
-				key.theta = theta[i];
-				key.evstatus = status2[i];
-
 				//Execute write
-				evtMap.insert(make_pair(key,evt));
+				evtMap.insert(make_pair(time[i],evt));
 
-			}
-
-			/*
-			 * TEST READ KEY COMPOSITE
-			 */
-
-			//The iterator
-			AgileEvtMap::iterator it;
-
-			//Read the data
-			for (it = evtMap.begin(); it != evtMap.end(); ++it) {
-				if(it->first.evstatus == 0 && it->first.energy>80 && it->first.energy<100 && it->first.theta>50){
-					evt = it->second;
-						for (int var = 0; var < Astro::agileEvtSize; ++var) {
-						if(var == 0)
-							cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) evt.back() << "\t";
-						else
-							cout << evt.back() << "\t";
-							evt.pop_back();
-						}
-					cout << endl;
-				}
 			}
 
 		}
@@ -193,14 +164,20 @@ int main(int argc, char** argv) {
 			std::vector<float> q2 = inputFF->read32f(LOG_Q2, nrows_start, nrows_end-1);
 			std::vector<float> q3 = inputFF->read32f(LOG_Q3, nrows_start, nrows_end-1);
 			std::vector<float> q4 = inputFF->read32f(LOG_Q4, nrows_start, nrows_end-1);
+
 			//write data into BDB
 			uint32_t count = 0;
 
 			//Create the vector to store into BDB
 			Astro::agileLog agileLog;
 
+			//Create key
+			Astro::agileLogKey key;
+
 			//Create the map
 			AgileLogMap logMap(connection, "AgileLogMap");
+
+			cout << "Start write into BDB" << endl;
 
 			for(uint32_t i = 0; i<nrows_end; i++) {
 				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " ";
@@ -223,8 +200,15 @@ int main(int argc, char** argv) {
 				agileLog.push_back((Ice::Double) phase[i]);
 				agileLog.push_back((Ice::Double) time[i]);
 
+				//Populate the key
+				key.time = time[i];
+				key.livetime = livetime[i];
+				key.logStatus = log_status[i];
+				key.mode = mode[i];
+				key.phase = phase[i];
+
 				//Execute write
-				logMap.insert(make_pair(time[i], agileLog));
+				logMap.insert(make_pair(key, agileLog));
 
 
 			}

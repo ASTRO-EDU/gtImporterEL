@@ -211,7 +211,7 @@ makelibdir:
 	
 makeslice:
 	slice2cpp --output-dir code code/Astro.ice
-	slice2freeze --dict AgileEvtMap,Astro::agileKey,Astro::agileEvt --dict AgileLogMap,double,Astro::agileLog --output-dir code AstroMap code/Astro.ice
+	slice2freeze --dict AgileEvtMap,double,Astro::agileEvt --dict AgileLogMap,Astro::agileLogKey,Astro::agileLog --output-dir code AstroMap code/Astro.ice
 
 #clean: delete all files from the current directory that are normally created by building the program. 
 clean:
