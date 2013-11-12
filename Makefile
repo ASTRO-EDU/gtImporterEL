@@ -176,13 +176,13 @@ $(DOXY_SOURCE_DIR)/%.cpp : %.cpp
 ####### 10) Build rules
 
 #all: compile the entire program.
-all: exe
+all: makeslice exe
 		#only if conf directory is present:
 		#$(SYMLINK) $(CONF_DIR) $(CONF_DEST_DIR)
 
 lib: staticlib 
 	
-exe:  makeobjdir $(OBJECTS) makeslice
+exe:  makeobjdir $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 		$(CC) $(CPPFLAGS) $(ALL_CFLAGS)  -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
 	
