@@ -176,13 +176,13 @@ $(DOXY_SOURCE_DIR)/%.cpp : %.cpp
 ####### 10) Build rules
 
 #all: compile the entire program.
-all: makeslice exe
+all: exe
 		#only if conf directory is present:
 		#$(SYMLINK) $(CONF_DIR) $(CONF_DEST_DIR)
 
 lib: staticlib 
 	
-exe:  makeobjdir $(OBJECTS) 
+exe:  makeobjdir makeslice $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 		$(CC) $(CPPFLAGS) $(ALL_CFLAGS)  -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
 	
@@ -212,6 +212,8 @@ makelibdir:
 makeslice:
 	slice2cpp --output-dir code code/Astro.ice
 	slice2freeze --dict AgileEvtMap,double,Astro::agileEvt --dict AgileLogMap,Astro::agileLogKey,Astro::agileLog --output-dir code AstroMap code/Astro.ice
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/Astro.cpp -o $(OBJECTS_DIR)/Astro.o
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/AstroMap.cpp -o $(OBJECTS_DIR)/AstroMap.o
 
 #clean: delete all files from the current directory that are normally created by building the program. 
 clean:
@@ -230,7 +232,7 @@ clean:
 	test $(LIB_DESTDIR) = . || $(DEL_DIR) $(LIB_DESTDIR)
 	test $(DOXY_SOURCE_DIR) = . || $(DEL_DIR) $(DOXY_SOURCE_DIR)
 	test $(DOC_DIR) = . || $(DEL_DIR) $(DOC_DIR)
-	
+	rm $(INCLUDE_DIR)/Astro*.h $(SOURCE_DIR)/Astro*.cpp	
 	
 #Delete all files from the current directory that are created by configuring or building the program. 
 distclean: clean
