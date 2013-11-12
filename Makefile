@@ -182,7 +182,7 @@ all: exe
 
 lib: staticlib 
 	
-exe: makeslice makeobjdir $(OBJECTS) 
+exe:  makeobjdir $(OBJECTS) makeslice
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 		$(CC) $(CPPFLAGS) $(ALL_CFLAGS)  -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
 	
