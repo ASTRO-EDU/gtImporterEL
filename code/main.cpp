@@ -34,6 +34,9 @@
 
 //columns of EVT file
 #define EVT_TIME 0
+#define EVT_PHI 2
+#define EVT_RA 3
+#define EVT_DEC 4
 #define EVT_ENERGY 5
 #define EVT_PH_EARTH 14
 #define EVT_THETA 1
@@ -103,6 +106,9 @@ int main(int argc, char** argv) {
 			//read all columns
 			cout << "Read EVT file " << endl;
 			std::vector<double> time = inputFF->read64f(EVT_TIME, nrows_start, nrows_end-1);
+			std::vector<float> phi = inputFF->read32f(EVT_PHI, nrows_start, nrows_end-1);
+			std::vector<float> ra = inputFF->read32f(EVT_RA, nrows_start, nrows_end-1);
+			std::vector<float> dec = inputFF->read32f(EVT_DEC, nrows_start, nrows_end-1);
 			std::vector<float> energy = inputFF->read32f(EVT_ENERGY, nrows_start, nrows_end-1);
 			std::vector<float> ph_earth = inputFF->read32f(EVT_PH_EARTH, nrows_start, nrows_end-1);
 			std::vector<float> theta = inputFF->read32f(EVT_THETA, nrows_start, nrows_end-1);
@@ -125,7 +131,7 @@ int main(int argc, char** argv) {
 			Astro::agileEvt evt;
 
 			//Create the map
-			AgileEvtMap evtMap(connection, "AgileEvtMap");
+			AgileEvtMap dbEvt(connection, "DBAgileEvt");
 
 			cout << "Start write into BDB" << endl;
 
@@ -140,10 +146,13 @@ int main(int argc, char** argv) {
 				evt.push_back((Ice::Double) theta[i]);
 				evt.push_back((Ice::Double) ph_earth[i]);
 				evt.push_back((Ice::Double) energy[i]);
+				evt.push_back((Ice::Double) dec[i]);
+				evt.push_back((Ice::Double) ra[i]);
+				evt.push_back((Ice::Double) phi[i]);
 				evt.push_back((Ice::Double) time[i]);
 
 				//Execute write
-				evtMap.insert(make_pair(time[i],evt));
+				dbEvt.insert(make_pair(time[i],evt));
 
 			}
 
@@ -175,7 +184,7 @@ int main(int argc, char** argv) {
 			Astro::agileLogKey key;
 
 			//Create the map
-			AgileLogMap logMap(connection, "AgileLogMap");
+			AgileLogMap DBLog(connection, "DBAgileLog");
 
 			cout << "Start write into BDB" << endl;
 
@@ -208,7 +217,7 @@ int main(int argc, char** argv) {
 				key.phase = phase[i];
 
 				//Execute write
-				logMap.insert(make_pair(key, agileLog));
+				DBLog.insert(make_pair(key, agileLog));
 
 
 			}
