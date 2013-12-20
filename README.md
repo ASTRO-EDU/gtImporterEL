@@ -7,9 +7,11 @@ This project covers the GammaTouch/Milestone2 project for EVT and LOG files.
 Run:
 
 make CPPFLAGS=-DSIMPLE_KEY simple
+
 to compile the project and make it works with the only time as the key of BDB
 
 make CPPFLAGS=-DCOMPOSITE_KEY composite
+
 to compile the project and make it works with the composite key
 
 Use
