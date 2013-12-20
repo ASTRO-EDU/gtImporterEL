@@ -133,12 +133,16 @@ int main(int argc, char** argv) {
 			//Create the map
 			AgileEvtMap dbEvt(connection, "DBAgileEvt");
 
+#ifdef COMPOSITE_KEY
+			Astro::agileEvtKey evtKey;
+#endif
+
 			cout << "Start write into BDB" << endl;
 
 			for(uint32_t i  = 0; i<nrows_end; i++) {
 				//&(status[i])[0]
 				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " " << status2[i] << endl;
-
+#ifdef SIMPLE_KEY
 				//Populate the vector
 				evt.clear();
 				evt.push_back((Ice::Double) status2[i]);
@@ -153,6 +157,33 @@ int main(int argc, char** argv) {
 
 				//Execute write
 				dbEvt.insert(make_pair(time[i],evt));
+#endif
+
+#ifdef COMPOSITE_KEY
+
+				//Populate the vector
+				evt.clear();
+				evt.push_back((Ice::Double) status2[i]);
+				evt.push_back((Ice::Double) phase[i]);
+				evt.push_back((Ice::Double) theta[i]);
+				evt.push_back((Ice::Double) ph_earth[i]);
+				evt.push_back((Ice::Double) energy[i]);
+				evt.push_back((Ice::Double) dec[i]);
+				evt.push_back((Ice::Double) ra[i]);
+				evt.push_back((Ice::Double) phi[i]);
+				evt.push_back((Ice::Double) time[i]);
+
+				//Populate the key
+				evtKey.time = time[i];
+				evtKey.ra = ra[i];
+				evtKey.dec = dec[i];
+				evtKey.energy = energy[i];
+				evtKey.theta = theta[i];
+				evtKey.evstatus = status2[i];
+
+				//Execute write
+				dbEvt.insert(make_pair(evtKey, evt));
+#endif
 
 			}
 

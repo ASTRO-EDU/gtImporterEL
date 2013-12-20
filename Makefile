@@ -184,7 +184,15 @@ lib: staticlib
 	
 exe:  makeobjdir makeslice $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-		$(CC) $(CPPFLAGS) $(ALL_CFLAGS)  -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
+		
+simple:  makeobjdir makeslicesimple $(OBJECTS) 
+		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
+		
+composite:  makeobjdir makeslicecomposite $(OBJECTS) 
+		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
 	
 staticlib: makelibdir makeobjdir $(OBJECTS)
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
@@ -209,9 +217,15 @@ makeobjdir:
 makelibdir:
 	test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)
 	
-makeslice:
+makeslicesimple:
 	slice2cpp --output-dir code code/Astro.ice
 	slice2freeze --dict AgileEvtMap,double,Astro::agileEvt --dict AgileLogMap,Astro::agileLogKey,Astro::agileLog --output-dir code AstroMap code/Astro.ice
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/Astro.cpp -o $(OBJECTS_DIR)/Astro.o
+	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/AstroMap.cpp -o $(OBJECTS_DIR)/AstroMap.o
+	
+makeslicecomposite:
+	slice2cpp --output-dir code code/Astro.ice
+	slice2freeze --dict AgileEvtMap,Astro::agileEvtKey,Astro::agileEvt --dict AgileLogMap,Astro::agileLogKey,Astro::agileLog --output-dir code AstroMap code/Astro.ice
 	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/Astro.cpp -o $(OBJECTS_DIR)/Astro.o
 	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/AstroMap.cpp -o $(OBJECTS_DIR)/AstroMap.o
 

@@ -9,6 +9,8 @@ const int agileLogSize = 13;
 struct agileEvtKey
 {
 double time;
+double ra;
+double dec;
 double energy;
 double theta;
 double evstatus;
