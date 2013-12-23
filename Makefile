@@ -22,10 +22,11 @@ SHELL = /bin/sh
 ####### 1) Project names and system
 
 SYSTEM= $(shell gcc -dumpmachine)
-#ice, ctarta, mpi, cfitsio
-LINKERENV= ice, cfitsio
+#ice, ctarta, mpi, cfitsio, sqlite
+LINKERENV= ice, cfitsio, sqlite
 PROJECT= gtImporterEL
-EXE_NAME = gtImporterEL
+EXE_NAME = gtImporterELice
+EXE_NAME2 = gtImporterELsqllite
 LIB_NAME = gtImporterEL
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -78,8 +79,12 @@ ifneq (, $(findstring ice, $(LINKERENV)))
         INCPATH += -I$(ICEDIR)/include
 endif
 ifneq (, $(findstring cfitsio, $(LINKERENV)))
-        INCPATH += -I$(CFITSIO)/include
+    INCPATH += -I$(CFITSIO)/include
 	LIBS += -L$(CFITSIO)/lib -lcfitsio
+endif
+ifneq (, $(findstring sqlite, $(LINKERENV)))
+    	INCPATH += -I$(LOCAL)/include
+	LIBS += -L$(LOCAL)/lib -lsqlite3
 endif
 ifneq (, $(findstring ctarta, $(LINKERENV)))
         INCPATH += -I$(CTARTA)/include
@@ -99,6 +104,11 @@ ifneq (, $(findstring linux, $(SYSTEM)))
 		LIBS += -L$(ICEDIR)/lib64
 		LIBS += -lIce -lIceUtil -lFreeze
 	endif
+	ifneq (, $(findstring sqlite, $(LINKERENV)))
+                LIBS += -L$(LOCAL)/sqlite3/lib
+                LIBS += -lsqlite3
+		INCPATH += -I$(LOCAL)/sqlite3/include
+        endif
 endif
 ifneq (, $(findstring qnx, $(SYSTEM)))
     # Do qnx things
@@ -184,7 +194,8 @@ lib: staticlib
 	
 exe:  makeobjdir makeslice $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/*.o $(LIBS)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/Astro*.o $(OBJECTS_DIR)/Input*.o $(OBJECTS_DIR)/main.o $(LIBS)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/Input*.o $(OBJECTS_DIR)/sqllite.o $(LIBS)
 		
 simple:  makeobjdir makeslicesimple $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
@@ -216,10 +227,12 @@ makeobjdir:
 	
 makelibdir:
 	test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)
-	
+
+makeslice: makeslicesimple
+
 makeslicesimple:
 	slice2cpp --output-dir code code/Astro.ice
-	slice2freeze --dict AgileEvtMap,double,Astro::agileEvt --dict AgileLogMap,Astro::agileLogKey,Astro::agileLog --output-dir code AstroMap code/Astro.ice
+	slice2freeze --dict AgileEvtMap,double,Astro::agileEvt --dict AgileEvtMapStruct,double,Astro::agileEvtValue --dict AgileLogMap,Astro::agileLogKey,Astro::agileLog --output-dir code AstroMap code/Astro.ice
 	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/Astro.cpp -o $(OBJECTS_DIR)/Astro.o
 	$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -c $(SOURCE_DIR)/AstroMap.cpp -o $(OBJECTS_DIR)/AstroMap.o
 	
