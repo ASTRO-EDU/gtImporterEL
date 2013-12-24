@@ -15,6 +15,8 @@
  *                                                                         *
  ***************************************************************************/
 
+#define SIMPLE_KEY
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -64,6 +66,8 @@ using namespace qlbase;
 ///Import AGILE LOG and EVT files into Ice/Freeze/BDB
 int main(int argc, char** argv) {
 
+	cout << "gtImporterELice" << endl;
+
 	if(argc == 1) {
 		cerr << "Please, provide (1) the fits file to import (2 optional) the last line to be read" << endl;
 		return 0;
@@ -88,6 +92,7 @@ int main(int argc, char** argv) {
 			nrows_end = atoi(argv[2]);
 		}
 		int type;
+		cout << nrows_end << endl;
 
 		if(ncols == 19) type = EVT;
 		if(ncols == 41) type = LOG;
@@ -100,7 +105,7 @@ int main(int argc, char** argv) {
 		Ice::CommunicatorPtr communicator = Ice::initialize(argc, argv, initData);
 
 		// Create a Freeze database connection.
-		Freeze::ConnectionPtr connection = Freeze::createConnection(communicator, "db");
+		Freeze::ConnectionPtr connection = Freeze::createConnection(communicator, "dbagilesimple");
 
 		if(type == EVT) {
 			//read all columns
@@ -119,7 +124,7 @@ int main(int argc, char** argv) {
 			for(uint32_t i  = 0; i<nrows_end; i++) {
 				std::string evt;
 				evt = &(status[i])[0];
-				cout << evt << endl;
+				//cout << evt << endl;
 				if(evt.compare("G") == 0) status2[i] = 0;
 				if(evt.compare("L") == 0) status2[i] = 1;
 				if(evt.compare("S") == 0) status2[i] = 2;
@@ -127,52 +132,40 @@ int main(int argc, char** argv) {
 			}
 			//write data into BDB
 
-			//Create the vector to store into BDB
-			Astro::agileEvt evt;
-
-			//Create the map
-			AgileEvtMap dbEvt(connection, "DBAgileEvt");
 
 #ifdef COMPOSITE_KEY
+			//Create the vector to store into BDB
+			Astro::agileEvt evt;
 			Astro::agileEvtKey evtKey;
 #endif
+#ifdef SIMPLE_KEY
+			//Create the map
+			AgileEvtMap dbEvt(connection, "DBAgileEvt");
+			//Create the vector to store into BDB
+			Astro::agileEvt evt;
+#endif
+#ifdef STRUCT_VALUE
+			cout << "<double, agileEvtStruct>" << endl;
+			AgileEvtMapStruct dbEvt(connection, "DBAgileEvtStruct");
 
+#endif
 			cout << "Start write into BDB" << endl;
 
 			for(uint32_t i  = 0; i<nrows_end; i++) {
-				//&(status[i])[0]
-				cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " " << status2[i] << endl;
-#ifdef SIMPLE_KEY
-				//Populate the vector
-				evt.clear();
-				evt.push_back((Ice::Double) status2[i]);
-				evt.push_back((Ice::Double) phase[i]);
-				evt.push_back((Ice::Double) theta[i]);
-				evt.push_back((Ice::Double) ph_earth[i]);
-				evt.push_back((Ice::Double) energy[i]);
-				evt.push_back((Ice::Double) dec[i]);
-				evt.push_back((Ice::Double) ra[i]);
-				evt.push_back((Ice::Double) phi[i]);
-				evt.push_back((Ice::Double) time[i]);
-
-				//Execute write
-				dbEvt.insert(make_pair(time[i],evt));
-#endif
+				//cout << setiosflags(ios::fixed) << std::setprecision(6) << (double) time[i] << " " << status2[i] << endl;
 
 #ifdef COMPOSITE_KEY
-
 				//Populate the vector
 				evt.clear();
-				evt.push_back((Ice::Double) status2[i]);
-				evt.push_back((Ice::Double) phase[i]);
-				evt.push_back((Ice::Double) theta[i]);
-				evt.push_back((Ice::Double) ph_earth[i]);
-				evt.push_back((Ice::Double) energy[i]);
-				evt.push_back((Ice::Double) dec[i]);
-				evt.push_back((Ice::Double) ra[i]);
-				evt.push_back((Ice::Double) phi[i]);
-				evt.push_back((Ice::Double) time[i]);
-
+				evt.push_back((Ice::Float) status2[i]);
+				evt.push_back((Ice::Float) phase[i]);
+				evt.push_back((Ice::Float) theta[i]);
+				evt.push_back((Ice::Float) ph_earth[i]);
+				evt.push_back((Ice::Float) energy[i]);
+				evt.push_back((Ice::Float) dec[i]);
+				evt.push_back((Ice::Float) ra[i]);
+				evt.push_back((Ice::Float) phi[i]);
+				//evt.push_back((Ice::Double) time[i]);
 				//Populate the key
 				evtKey.time = time[i];
 				evtKey.ra = ra[i];
@@ -183,6 +176,34 @@ int main(int argc, char** argv) {
 
 				//Execute write
 				dbEvt.insert(make_pair(evtKey, evt));
+#endif
+
+#ifdef SIMPLE_KEY
+				evt.clear();
+                                evt.push_back((Ice::Float) status2[i]);
+                                evt.push_back((Ice::Float) phase[i]);
+                                evt.push_back((Ice::Float) theta[i]);
+                                evt.push_back((Ice::Float) ph_earth[i]);
+                                evt.push_back((Ice::Float) energy[i]);
+                                evt.push_back((Ice::Float) dec[i]);
+                                evt.push_back((Ice::Float) ra[i]);
+                                evt.push_back((Ice::Float) phi[i]);
+				//Execute write
+				dbEvt.insert(make_pair(time[i],evt));
+
+#endif
+
+#ifdef STRUCT_VALUE
+				Astro::agileEvtValue evt;
+				evt.theta = theta[i];
+				evt.phi = phi[i];
+				evt.ra = ra[i];
+				evt.dec = dec[i];
+				evt.energy = energy[i];
+				evt.phearth = ph_earth[i];
+				evt.evstatus = status2[i];
+				//Execute write
+				dbEvt.insert(make_pair(time[i],evt));
 #endif
 
 			}
