@@ -135,8 +135,10 @@ int main(int argc, char** argv) {
 
 #ifdef COMPOSITE_KEY
 			//Create the vector to store into BDB
+			cout << "<agileEvtKey, double>
 			Astro::agileEvt evt;
 			Astro::agileEvtKey evtKey;
+			AgileEvtMapComplex dbEvt(connection, "DBAgileEvtComplex");
 #endif
 #ifdef SIMPLE_KEY
 			//Create the map
