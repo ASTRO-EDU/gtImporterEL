@@ -23,10 +23,10 @@ SHELL = /bin/sh
 
 SYSTEM= $(shell gcc -dumpmachine)
 #ice, ctarta, mpi, cfitsio, sqlite
-LINKERENV= ice, cfitsio, sqlite
+LINKERENV= ice, cfitsio, agile
 PROJECT= gtImporterEL
 EXE_NAME = gtImporterELice
-EXE_NAME2 = gtImporterELsqllite
+#EXE_NAME2 = gtImporterELsqllite
 LIB_NAME = gtImporterEL
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -73,6 +73,14 @@ CC       = gcc
 endif
 
 #Set INCPATH to add the inclusion paths
+#Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
+CFLAGS   = -g
+#Insert the implicit parameter to the compiler:
+ALL_CFLAGS = -m64 -fexceptions -Wall $(CFLAGS) $(INCPATH)
+#Use CPPFLAGS for the preprocessor
+CPPFLAGS =
+#Set LIBS for addition library
+
 INCPATH = -I $(INCLUDE_DIR) 
 LIBS = -lstdc++
 ifneq (, $(findstring ice, $(LINKERENV)))
@@ -90,13 +98,10 @@ ifneq (, $(findstring ctarta, $(LINKERENV)))
         INCPATH += -I$(CTARTA)/include
 	LIBS += -L$(CTARTA)/lib -lpacket -lRTAtelem
 endif
-#Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
-CFLAGS   = -g 
-#Insert the implicit parameter to the compiler:
-ALL_CFLAGS = -m64 -fexceptions -Wall $(CFLAGS) $(INCPATH)
-#Use CPPFLAGS for the preprocessor
-CPPFLAGS = 
-#Set LIBS for addition library
+ifneq (, $(findstring agile, $(LINKERENV)))
+	INCPATH += -I$(AGILE)/include
+	LIBS += -L$(AGILE)/lib -lagilesci -lgtcommon
+endif
 
 ifneq (, $(findstring linux, $(SYSTEM)))
  	#Do linux things
@@ -192,10 +197,10 @@ all: exe
 
 lib: staticlib 
 	
-exe:  makeobjdir makeslice $(OBJECTS) 
+exe:  makeobjdir  $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/Astro*.o $(OBJECTS_DIR)/Input*.o $(OBJECTS_DIR)/main.o $(LIBS)
-		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/Input*.o $(OBJECTS_DIR)/sqllite.o $(LIBS)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME) $(OBJECTS_DIR)/main.o $(LIBS)
+		#$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/Input*.o $(OBJECTS_DIR)/sqllite.o $(LIBS)
 		
 simple:  makeobjdir makeslicesimple $(OBJECTS) 
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
@@ -259,7 +264,6 @@ clean:
 	test $(LIB_DESTDIR) = . || $(DEL_DIR) $(LIB_DESTDIR)
 	test $(DOXY_SOURCE_DIR) = . || $(DEL_DIR) $(DOXY_SOURCE_DIR)
 	test $(DOC_DIR) = . || $(DEL_DIR) $(DOC_DIR)
-	rm $(INCLUDE_DIR)/Astro*.h $(SOURCE_DIR)/Astro*.cpp	
 	
 #Delete all files from the current directory that are created by configuring or building the program. 
 distclean: clean
