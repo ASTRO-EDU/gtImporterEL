@@ -83,6 +83,10 @@ CPPFLAGS =
 
 INCPATH = -I $(INCLUDE_DIR) 
 LIBS = -lstdc++
+ifneq (, $(findstring agile, $(LINKERENV)))
+        INCPATH += -I$(AGILE)/include
+        LIBS += -L$(AGILE)/lib -lagilesci -lgtcommon
+endif
 ifneq (, $(findstring ice, $(LINKERENV)))
         INCPATH += -I$(ICEDIR)/include
 endif
@@ -97,10 +101,6 @@ endif
 ifneq (, $(findstring ctarta, $(LINKERENV)))
         INCPATH += -I$(CTARTA)/include
 	LIBS += -L$(CTARTA)/lib -lpacket -lRTAtelem
-endif
-ifneq (, $(findstring agile, $(LINKERENV)))
-	INCPATH += -I$(AGILE)/include
-	LIBS += -L$(AGILE)/lib -lagilesci -lgtcommon
 endif
 
 ifneq (, $(findstring linux, $(SYSTEM)))

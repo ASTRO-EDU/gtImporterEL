@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
                                 evt.push_back((Ice::Float) phi[i]);
 				//Execute write
 				dbEvt.insert(make_pair(time[i],evt));
-
+				//cout << i << " ";
 #endif
 
 #ifdef STRUCT_VALUE
@@ -206,9 +206,11 @@ int main(int argc, char** argv) {
 				evt.evstatus = status2[i];
 				//Execute write
 				dbEvt.insert(make_pair(time[i],evt));
+				cout << i << " ";
 #endif
 
 			}
+			cout << endl;
 
 		}
 		if(type == LOG) {
@@ -277,6 +279,8 @@ int main(int argc, char** argv) {
 			}
 			cout << count << endl;
 		}
+		connection->close();
+    		communicator->destroy();
 	} catch(IOException* e) {
 		cout << e->getErrorCode() << ": " << e->what() << endl;
 		return e->getErrorCode();
