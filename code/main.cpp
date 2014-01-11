@@ -27,6 +27,7 @@
 #include "InputFileFITS.h"
 
 #include "AstroMap.h"
+#include "DBAstro.h"
 #include "Astro.h"
 #include <Freeze/Freeze.h>
 
@@ -142,7 +143,8 @@ int main(int argc, char** argv) {
 #endif
 #ifdef SIMPLE_KEY
 			//Create the map
-			AgileEvtMap dbEvt(connection, "DBAgileEvt");
+//			AgileEvtMap dbEvt(connection, "DBAgileEvt");
+			DBAgileEvt dbEvt(connection, "DBAgileEvt");
 			//Create the vector to store into BDB
 			Astro::agileEvt evt;
 #endif
@@ -280,7 +282,7 @@ int main(int argc, char** argv) {
 			cout << count << endl;
 		}
 		connection->close();
-    		communicator->destroy();
+    	communicator->destroy();
 	} catch(IOException* e) {
 		cout << e->getErrorCode() << ": " << e->what() << endl;
 		return e->getErrorCode();

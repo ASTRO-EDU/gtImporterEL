@@ -7,7 +7,7 @@ set_lg_dir logs
 #
 # (Optional) Additional Berkeley DB messages during recovery.
 #
-set_verbose DB_VERB_RECOVERY
+#set_verbose DB_VERB_RECOVERY
 
 set_lk_max_locks 20000000
 set_lk_max_objects 20000000
